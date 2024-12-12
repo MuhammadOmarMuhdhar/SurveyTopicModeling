@@ -78,9 +78,9 @@ def documentation():
     - **File Upload Issues**:
        - Ensure the uploaded file is in CSV format with valid column names.
     - **Processing Delays**:
-       - Large datasets may take longer to process. Try using a smaller subset of the data.
+       - This tool uses the free version of Gemini, datasets may take longer to process due to API rate limits. Try using a smaller subset of the data.
     - **Visualization Not Displaying**:
-       - Check your browser's console for errors and ensure Plotly is properly installed.
+       - Check your browser's console for errors and report them as feedback.
     """)
 
     st.markdown("""

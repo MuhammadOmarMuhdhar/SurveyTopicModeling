@@ -27,10 +27,10 @@ def home_page():
 
     # Introduction Section
     st.markdown("""
-    **This prototype tool is designed to transform open-ended survey responses into clear and actionable quantitative insights.**
+    **This prototype tool is designed to transform open-ended survey responses into clear quantitative insights.**
 
     By leveraging natural language processing, unsupervised machine learning algorithms, and advanced large language models, this tool 
-    enables the large-scale analysis of qualitative data. It organizes unstructured survey responses into coherent and meaningful clusters, 
+    enables the large-scale analysis of qualitative data. It organizes unstructured survey responses into coherent and semantically meaningful clusters, 
     providing concise summaries and insights that uncover key themes and highlight underlying patterns in responses.
 
     The goal is to bridge the gap between traditional manual analysis of open-ended surveys and modern machine learning techniques, 
@@ -56,11 +56,6 @@ def home_page():
     3. Process the data to view clusters, summaries, and sentiment analysis.
     4. Explore insights through interactive visualizations on the results page.
     """)
-
-    # Call to Action
-    st.subheader("Get Started")
-    st.markdown("Click on the **Workspace** tab in the sidebar to begin analyzing your survey data.")
-
     
 
 # Run the function if the file is executed directly
