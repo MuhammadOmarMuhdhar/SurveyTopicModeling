@@ -60,23 +60,14 @@ def create_clusters(df_with_embeddings, granularity='default'):
     
     default_param_grid = {
         'min_cluster_size': [
-            # max(5, int(num_rows * 0.005)),  # 0.5% of the data or 5
-            # max(7, int(num_rows * 0.0075)), # 0.75% of the data or 7
-            # max(10, int(num_rows * 0.01)),  # 1% of the data or 10
-            # max(12, int(num_rows * 0.0125)), # 1.25% of the data or 12
-            # max(15, int(num_rows * 0.015)),  # 1.5% of the data or 15
-            max(17, int(num_rows * 0.0175)), # 1.75% of the data or 17
-            max(20, int(num_rows * 0.02)),   # 2% of the data or 20
-            max(22, int(num_rows * 0.0225)), # 2.25% of the data or 22
-            max(25, int(num_rows * 0.025)),  # 2.5% of the data or 25
-            max(27, int(num_rows * 0.0275)), # 2.75% of the data or 27
-            max(30, int(num_rows * 0.03)),   # 3% of the data or 30
+
+            max(17, int(num_rows * 0.02)),   # 2% of the data or 20
+            max(20, int(num_rows * 0.0225)), # 2.25% of the data or 22
+            max(23, int(num_rows * 0.025)),  # 2.5% of the data or 25
+            max(26, int(num_rows * 0.0275)), # 2.75% of the data or 27
+            max(29, int(num_rows * 0.03)),   # 3% of the data or 30
             max(32, int(num_rows * 0.0325)), # 3.25% of the data or 32
             max(35, int(num_rows * 0.035)), # 3.5% of the data or 35
-            # max(37, int(num_rows * 0.0375)) # 3.75% of the data or 37
-            # max(40, int(num_rows * 0.04))   # 4% of the data or 40
-            # max(42, int(num_rows * 0.0425)) # 4.25% of the data or 42
-            # max(45, int(num_rows * 0.045))  # 4.5% of the data or 45
         ],
         'min_samples': [
             max(5, int(num_rows * 0.005)),  # 0.5% of the data or 5
@@ -102,7 +93,7 @@ def create_clusters(df_with_embeddings, granularity='default'):
     }
 
     # Predefined fallback parameters
-    fallback_params = {'min_cluster_size': 10, 'min_samples': 5}
+    fallback_params = {'min_cluster_size': max(17, int(num_rows * 0.02)), 'min_samples': max(5, int(num_rows * 0.005))}
 
     # Select the appropriate parameter grid
     param_grid = default_param_grid if granularity == 'default' else broad_param_grid

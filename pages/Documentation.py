@@ -1,19 +1,35 @@
 import streamlit as st
 
 def documentation():
+
+
+    st.sidebar.markdown("")
+    st.sidebar.markdown("")
+
+    # Separator for clarity
+    st.sidebar.markdown("### Share Your Feedback")
+
+    # Feedback Form Fields
+    name = st.sidebar.text_input("Your Name", key="name_input")
+    email = st.sidebar.text_input("Your Email", key="email_input")
+    message = st.sidebar.text_area("Your Feedback or Suggestions", key="message_input")
+
+    # Submit Button
+    if st.sidebar.button("Submit Feedback", key="submit_feedback_button"):
+        if name and email and message:
+            st.sidebar.success("Thank you for your feedback!")
+            # Implement functionality to store or send feedback, e.g., saving to a database
+        else:
+            st.sidebar.error("Please fill in all fields before submitting.")
+
+
     st.title("Documentation")
 
-    st.subheader("Introduction")
     st.markdown("""
-                This tool is designed to simplify the analysis of open-ended survey responses. By integrating machine learning and 
-                natural language processing (NLP), it uncovers trends, sentiments, and patterns from qualitative data at a *topic* level, enabling deeper insights and actionable outcomes for researchers and organizations.
-    """)
 
-    st.markdown("""
-                The tool bridges the gap between traditional manual survey analysis and modern machine learning techniques, offering a scalable, 
-                intuitive platform for extracting insights from even the most complex datasets. Whether you’re working with customer feedback, 
-                employee engagement surveys, or academic research, Dodora adapts to your needs and delivers results efficiently.
-    """)
+    This page provides a quick guide to using this prototype to analyze open-ended survey responses. Here, you'll find explanations of the 
+    tool's functionality, the technologies powering it, and step-by-step instructions for each stage of the workflow.
+""")
 
 
     st.subheader("Workflow")
@@ -38,30 +54,24 @@ def documentation():
     """)
 
     st.subheader("Core Technologies")
-    st.markdown("""
- 
-    
-    - **Hugging Face Transformers**:
-      - Used for generating sentence embeddings and summarization.
-      - Models like `distilbert` or `sentence-transformers` capture the semantic meaning of responses.
+    with st.expander("Sentence-Transformers for Embedding Generation"):
+        st.markdown("""
+            This tool uses `sentence-transformers`, a pre-trained model from Hugging Face, to generate embeddings that capture the semantic meaning of textual responses.
+            These embeddings provide a representation of the nuances within responses, ensuring that similar ideas are grouped together effectively.
+        """)
 
-    - **HDBSCAN (Hierarchical Density-Based Spatial Clustering of Applications with Noise)**:
-      - Groups similar responses into clusters based on their embeddings.
-      - Handles noise (outliers) effectively, ensuring robust clustering.
+    with st.expander("HDBSCAN for Clustering"):
+        st.markdown("""
+            To group similar responses, the tool employs `HDBSCAN` (Hierarchical Density-Based Spatial Clustering of Applications with Noise). This unsupervised learning method is well-suited for
+            analyzing textual data as it dynamically adjusts cluster thresholds, allowing for flexible and accurate grouping of embedded responses.
+        """)
 
-    - **Gemini Embeddings**:
-      - Converts textual data into high-dimensional vectors for clustering.
+    with st.expander("Gemini for Summarization"):
+        st.markdown("""
+            Once clusters are formed, Google's large language model (LLM) `Gemini` is used to generate concise, contextual summaries of each cluster. LLMs excel at capturing the key themes and nuances of the 
+            clustered responses, providing insights into the patterns within responses at the topic cluster level.
+        """)
 
-    - **Plotly**:
-      - Provides interactive scatter plots for visual exploration of clusters.
-      - Visualizes cluster sizes, polarity-based coloring, and textual summaries.
-
-    - **Sentiment Analysis**:
-      - Analyzes the sentiment of responses (positive, negative, neutral) for each cluster.
-
-    - **Streamlit**:
-      - Powers the interactive web application, providing an intuitive user interface.
-    """)
 
     st.subheader("Troubleshooting")
     st.markdown("""
@@ -73,15 +83,11 @@ def documentation():
        - Check your browser's console for errors and ensure Plotly is properly installed.
     """)
 
-    st.subheader("Acknowledgments")
     st.markdown("""
-    This project leverages powerful open-source technologies to deliver its functionality:
-    - **Streamlit** for the interactive user interface.
-    - **Hugging Face Transformers** for embeddings and summarization.
-    - **HDBSCAN** for clustering survey responses.
-    - **Plotly** for creating interactive visualizations.
+        The complete source code for this project is available on GitHub. You can explore it, report issues, or contribute to its development:
 
-    A special thanks to the contributors and researchers whose tools and models have made this project possible.
+
+        [![GitHub](https://img.shields.io/badge/Source-GitHub-blue)](https://github.com/MuhammadOmarMuhdhar/SurveyTopicModeling)
     """)
 
 # Call the function to display the documentation page
