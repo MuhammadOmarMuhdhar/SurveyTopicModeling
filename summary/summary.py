@@ -1,10 +1,9 @@
 import google.generativeai as genai
-from config import creds
 import json 
 import time
-from tqdm.notebook import tqdm
+import streamlit as st
 
-GEMINI_API_KEY = creds.GEMINI_API_KEY
+GEMINI_API_KEY = st.secrets["api_key"]
 
 llm_cache = {} 
 
