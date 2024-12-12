@@ -2,3 +2,4 @@ myenv
 config
 creds.py
 head-shot.jpg
+secrets.toml
