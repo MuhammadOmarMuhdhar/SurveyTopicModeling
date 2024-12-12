@@ -2,17 +2,15 @@ import streamlit as st
 
 def home_page():
 
-    st.sidebar.markdown("## About Me")
+    # st.sidebar.markdown("## About Me")
     
-    # Add an optional profile image (local or online)
-    st.sidebar.image("head-shot.jpg", use_container_width=False, width=200)
-    st.sidebar.markdown("")
+    # # Add an optional profile image (local or online)
+    # st.sidebar.image("head-shot.jpg", use_container_width=False, width=200)
+    # st.sidebar.markdown("")
 
 
     # About Me Content
-    st.sidebar.markdown("""
-    Hi, I'm **Muhammad Muhdhar**, a graduate student at UC Berkeley studying **computational social science**.  
-                        
+    st.sidebar.markdown("""                     
     This prototype represents my first attempt in exploring how machine learning and NLP can be used to address the challenge of analyzing qualitative
                         survey data at scale. 
 
