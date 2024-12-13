@@ -3,3 +3,5 @@ config
 creds.py
 head-shot.jpg
 secrets.toml
+.venv
+.streamlit

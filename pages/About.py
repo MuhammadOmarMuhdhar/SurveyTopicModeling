@@ -11,8 +11,10 @@ def home_page():
 
     # About Me Content
     st.sidebar.markdown("""                     
-    This prototype represents my first attempt in exploring how machine learning and NLP can be used to address the challenge of analyzing qualitative
-                        survey data at scale. 
+    This project is my first attempt in exploring the use of large language
+                        modes to process granular unstructured human data to 
+                        provide richer undertstandings of broader
+                        societal trends and patterns.
 
     I'd love to hear your thoughts and suggestions to improve this tool!  
                         
