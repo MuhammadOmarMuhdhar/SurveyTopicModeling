@@ -190,39 +190,7 @@ def main():
             st.session_state.stage = 'analyze_data'
             st.rerun()
 
-    # **Analyze Data Stage**
-    elif st.session_state.stage == 'analyze_data':
-        st.subheader("Analyze Data")
-        responses_column = st.session_state.responses_column
-        sex_column = st.session_state.demographics['sex']['column']
-        age_column = st.session_state.demographics['age']['column']
-        ethnicity_column = st.session_state.demographics['ethnicity']['column']
-
-        columns = [responses_column, sex_column, age_column, ethnicity_column]
-
-        # Copy the original DataFrame
-        df = st.session_state.df.copy()
-
-        # Ensure demographic columns are only included if they exist
-        columns = [st.session_state.responses_column]  # Start with responses column
-        rename_mapping = {st.session_state.responses_column: 'responses'}
-
-        # Check and add optional demographic columns
-        if 'age' in st.session_state.demographics and st.session_state.demographics['age']['include']:
-            columns.append(st.session_state.demographics['age']['column'])
-            rename_mapping[st.session_state.demographics['age']['column']] = 'age'
-
-        if 'sex' in st.session_state.demographics and st.session_state.demographics['sex']['include']:
-            columns.append(st.session_state.demographics['sex']['column'])
-            rename_mapping[st.session_state.demographics['sex']['column']] = 'sex'
-
-        if 'ethnicity' in st.session_state.demographics and st.session_state.demographics['ethnicity']['include']:
-            columns.append(st.session_state.demographics['ethnicity']['column'])
-            rename_mapping[st.session_state.demographics['ethnicity']['column']] = 'ethnicity'
-
-        # Filter and rename the DataFrame safely
-        df = df[columns].rename(columns=rename_mapping)
-
+        
         # if "email_submitted" not in st.session_state:
         #     st.session_state.email_submitted = False
 
@@ -242,76 +210,87 @@ def main():
         #         else:
         #             st.error("Please enter a valid email address.")
 
+        
 
+    # **Analyze Data Stage**
+    elif st.session_state.stage == 'analyze_data':
+        st.subheader("Analyze Data")
 
+        # Prepare columns and data
+        responses_column = st.session_state.responses_column
+        sex_column = st.session_state.demographics['sex']['column']
+        age_column = st.session_state.demographics['age']['column']
+        ethnicity_column = st.session_state.demographics['ethnicity']['column']
+
+        columns = [responses_column]
+        rename_mapping = {responses_column: 'responses'}
+
+        if 'age' in st.session_state.demographics and st.session_state.demographics['age']['include']:
+            columns.append(age_column)
+            rename_mapping[age_column] = 'age'
+
+        if 'sex' in st.session_state.demographics and st.session_state.demographics['sex']['include']:
+            columns.append(sex_column)
+            rename_mapping[sex_column] = 'sex'
+
+        if 'ethnicity' in st.session_state.demographics and st.session_state.demographics['ethnicity']['include']:
+            columns.append(ethnicity_column)
+            rename_mapping[ethnicity_column] = 'ethnicity'
+
+        df = st.session_state.df[columns].rename(columns=rename_mapping)
+
+        # Initialize progress bar and steps
         progress_bar = st.progress(0)
         progress_text = st.empty()  # Placeholder for progress updates
-
         total_steps = 2
         step = 0
 
-       
-        
-
-        try:
-            # Step 1: Data Processing
-            step += 1
-            progress_text.text(f"Step {step} of {total_steps}: Processing and clustering data...")
+        # Check if processing is already done
+        if 'processed_dfs' not in st.session_state or 'summaries' not in st.session_state:
             try:
-                # Process the data
+                # Step 1: Data Processing
+                step += 1
+                progress_text.text(f"Step {step} of {total_steps}: Processing and clustering data...")
                 processed_dfs = processor.feature_engineering(df, detail='default')
+                st.session_state.processed_dfs = processed_dfs
                 progress_bar.progress(step / total_steps)
-
-                # Display processed data
-                with st.expander("Show processed data"):
-                    st.write(processed_dfs['processed_df'])
                 st.success("Data processed successfully!")
-            except Exception as e:
-                st.error(f"Error during data processing: {e}")
-                progress_bar.empty()
-                raise e  # Exit if processing fails
 
-            # Step 2: Cluster Summarization
-            step += 1
-            progress_text.text(f"Step {step} of {total_steps}: Summarizing clusters... This may take a few minutes.")
-
-
-            try:
-                # Summarize the clusters
+                # Step 2: Cluster Summarization
+                step += 1
+                progress_text.text(f"Step {step} of {total_steps}: Summarizing clusters... This may take a few minutes please do not close the browser.")
                 topic = st.session_state.get('topic', 'No topic specified')
                 summaries = summary.SUMMARIZER(processed_dfs, topic=topic)
+                st.session_state.summaries = summaries
                 progress_bar.progress(step / total_steps)
-
-                # Display cluster summaries
-                with st.expander("Show cluster summaries"):
-                    st.write(summaries['cluster_summary'])
                 st.success("Clusters summarized successfully!")
             except Exception as e:
-                st.error(f"Error during summarization: {e}")
+                st.error(f"An error occurred: {e}")
                 progress_bar.empty()
-                raise e  # Exit if summarization fails
+                return
+        else:
+            # If already processed, retrieve from session state
+            processed_dfs = st.session_state.processed_dfs
+            summaries = st.session_state.summaries
+            st.info("Data already processed. Skipping to visualization.")
 
-            # Finalize progress bar and text
-            progress_text.text("All steps completed!")
-            progress_bar.empty()
+        # Display processed data
+        with st.expander("Show processed data"):
+            st.write(processed_dfs['processed_df'])
 
-            # Save results to session state for further analysis
-            st.session_state.processed_dfs = processed_dfs
-            st.session_state.summaries = summaries
+        with st.expander("Show cluster summaries"):
+            st.write(summaries['cluster_summary'])
 
-            # Option to move to the dashboard
-            if st.button("Go to Scatterplot"):
-                with st.spinner("Loading visuals..."):
-                    st.session_state.stage = 'dashboard'
-                    st.rerun()
+        # Finalize progress bar
+        progress_text.text("All steps completed!")
+        progress_bar.empty()
 
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
-            progress_text.text("An error occurred during processing.")
-            progress_bar.empty()
-            if st.button("Back"):
-                st.session_state.stage = 'review_data'
+        # Transition to the dashboard
+        if st.button("Go to Scatterplot"):
+            with st.spinner("Loading visuals..."):
+                st.session_state.stage = 'dashboard'
                 st.rerun()
+
 
     # Dashboard stage
 
@@ -333,7 +312,16 @@ def main():
         with st.expander("Negative Cluster summaries"):
             negative_cluster_summary = summaries['negative_cluster_summary'][['cluster', 'Summary']]                      
             st.write(negative_cluster_summary)
-            
+
+        st.markdown(
+            """
+            ### How to explore the scatterplot
+
+            - **Visualization**: Below is a visual representation of clusters, each grouping semantically similar responses. Hover over a cluster to see its title, generated by a large language model summarizing shared themes.
+
+            - **Cluster Summaries**: Expand the sections above to view positive and negative summaries, highlighting key themes for each cluster.
+            """
+        )
 
         # Display the topic
         
