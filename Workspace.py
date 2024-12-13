@@ -173,14 +173,37 @@ def main():
     elif st.session_state.stage == 'review_data':
         st.subheader("Review Data")
 
-        selected_cols = [st.session_state.responses_column]
-        for demo, data in st.session_state.demographics.items():
-            if data['include']:
-                selected_cols.append(data['column'])
+         # Prepare columns and data
+        responses_column = st.session_state.responses_column
+        sex_column = st.session_state.demographics['sex']['column']
+        age_column = st.session_state.demographics['age']['column']
+        ethnicity_column = st.session_state.demographics['ethnicity']['column']
 
-        subset_df = st.session_state.df[selected_cols].dropna()
-        st.write("Selected Data:")
-        st.dataframe(subset_df)
+        columns = [responses_column]
+        rename_mapping = {responses_column: 'responses'}
+
+        if 'age' in st.session_state.demographics and st.session_state.demographics['age']['include']:
+            columns.append(age_column)
+            rename_mapping[age_column] = 'age'
+
+        if 'sex' in st.session_state.demographics and st.session_state.demographics['sex']['include']:
+            columns.append(sex_column)
+            rename_mapping[sex_column] = 'sex'
+
+        if 'ethnicity' in st.session_state.demographics and st.session_state.demographics['ethnicity']['include']:
+            columns.append(ethnicity_column)
+            rename_mapping[ethnicity_column] = 'ethnicity'
+
+        df = st.session_state.df[columns].rename(columns=rename_mapping)
+
+        # selected_cols = [st.session_state.responses_column]
+        # for demo, data in st.session_state.demographics.items():
+        #     if data['include']:
+        #         selected_cols.append(data['column'])
+
+        # subset_df = st.session_state.df[selected_cols].dropna()
+        # st.write("Selected Data:")
+        st.dataframe(df)
 
         if st.button("Back"):
             st.session_state.stage = 'upload'
