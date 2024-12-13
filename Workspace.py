@@ -56,7 +56,18 @@ def main():
 
     # **Upload Stage**
     if st.session_state.stage == 'upload':
-        st.subheader("Define the Questionnaire Topic")
+
+        st.subheader("Survey Topic Modelor")
+        
+        st.markdown(
+        "This prototype tool leverages large language models to process and translate open-ended qualitative data—such as survey responses, product reviews, and user feedback into an insightful visualization, providing qualitative insights on patterns and trends in the responses at the topic level."
+                    )
+        
+        st.markdown(
+        "We value your feedback! Please share your thoughts, suggestions, or any ideas for improvement to help us refine this tool and make it even more useful."
+            )
+        
+        st.subheader("Questionnaire Topic")
 
         # Ensure topic is initialized
         if 'topic' not in st.session_state:
@@ -278,9 +289,10 @@ def main():
             st.session_state.summaries = summaries
 
             # Option to move to the dashboard
-            if st.button("Go to Dashboard"):
-                st.session_state.stage = 'dashboard'
-                st.rerun()
+            if st.button("Go to Scatterplot"):
+                with st.spinner("Loading visuals..."):
+                    st.session_state.stage = 'dashboard'
+                    st.rerun()
 
         except Exception as e:
             st.error(f"An error occurred: {e}")
