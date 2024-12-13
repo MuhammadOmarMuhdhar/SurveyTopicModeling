@@ -18,6 +18,8 @@ def reset_session_state():
         }
     })
 
+
+
 def validate_responses_column(df, column):
     """Validates the selected column for survey responses."""
     if column is None:
@@ -221,44 +223,58 @@ def main():
         # Filter and rename the DataFrame safely
         df = df[columns].rename(columns=rename_mapping)
 
+        # if "email_submitted" not in st.session_state:
+        #     st.session_state.email_submitted = False
+
+        # if not st.session_state.email_submitted:
+
+        #     with st.form("email_form"):
+        #         email = st.text_input("This may take a few minutes, enter email to recieve notification when done", placeholder="example@example.com")
+        #         updates_opt_in = st.checkbox("I’m interested in receiving updates about this tool.")
+        #         submit_email = st.form_submit_button("Notify me when complete")
+
+        #     if submit_email:
+        #         if email:
+        #             # # Store the email in Google Sheets
+        #             # store_email_in_sheets(email, updates_opt_in)
+        #             # st.info("Thank you! You will be notified by email once the summarization is complete.")
+        #             st.session_state.email_submitted = True  # Mark email as submitted
+        #         else:
+        #             st.error("Please enter a valid email address.")
+
+
 
         progress_bar = st.progress(0)
-        progress_text = st.empty()  # Text placeholder for progress updates
+        progress_text = st.empty()  # Placeholder for progress updates
 
         total_steps = 2
         step = 0
+
+       
+        
 
         try:
             # Step 1: Data Processing
             step += 1
             progress_text.text(f"Step {step} of {total_steps}: Processing and clustering data...")
-            processing_message = st.empty()
-            # processing_message.text("Data is being processed...")
-
             try:
                 # Process the data
                 processed_dfs = processor.feature_engineering(df, detail='default')
                 progress_bar.progress(step / total_steps)
 
                 # Display processed data
-                processing_message.empty()
                 with st.expander("Show processed data"):
                     st.write(processed_dfs['processed_df'])
                 st.success("Data processed successfully!")
             except Exception as e:
-                processing_message.empty()
                 st.error(f"Error during data processing: {e}")
                 progress_bar.empty()
-                if st.button("Back"):
-                    st.session_state.stage = 'review_data'
-                    st.rerun()
                 raise e  # Exit if processing fails
 
             # Step 2: Cluster Summarization
             step += 1
-            progress_text.text(f"Step {step} of {total_steps}: Summarizing clusters...This may take a few minutes.")
-            summarizer_message = st.empty()
-            # summarizer_message.text("Summarizing clusters... This may take a few minutes.")
+            progress_text.text(f"Step {step} of {total_steps}: Summarizing clusters... This may take a few minutes.")
+
 
             try:
                 # Summarize the clusters
@@ -267,24 +283,19 @@ def main():
                 progress_bar.progress(step / total_steps)
 
                 # Display cluster summaries
-                summarizer_message.empty()
                 with st.expander("Show cluster summaries"):
                     st.write(summaries['cluster_summary'])
                 st.success("Clusters summarized successfully!")
             except Exception as e:
-                summarizer_message.empty()
                 st.error(f"Error during summarization: {e}")
                 progress_bar.empty()
-                if st.button("Back"):
-                    st.session_state.stage = 'review_data'
-                    st.rerun()
                 raise e  # Exit if summarization fails
 
             # Finalize progress bar and text
             progress_text.text("All steps completed!")
             progress_bar.empty()
 
-             # Save results to session state for dashboard
+            # Save results to session state for further analysis
             st.session_state.processed_dfs = processed_dfs
             st.session_state.summaries = summaries
 
@@ -301,7 +312,6 @@ def main():
             if st.button("Back"):
                 st.session_state.stage = 'review_data'
                 st.rerun()
-        
 
     # Dashboard stage
 
