@@ -28,8 +28,6 @@ def validate_responses_column(df, column):
     if column not in df.columns:
         st.error(f"The selected column '{column}' does not exist in the DataFrame.")
         return False
-    if not pd.api.types.is_string_dtype(df[column]):
-        st.warning(f"The column '{column}' does not contain text data. Are you sure this is the correct column?")
     return True
 
 def toggle_demographic(demographic):
@@ -173,27 +171,42 @@ def main():
     elif st.session_state.stage == 'review_data':
         st.subheader("Review Data")
 
-         # Prepare columns and data
-        responses_column = st.session_state.responses_column
-        sex_column = st.session_state.demographics['sex']['column']
-        age_column = st.session_state.demographics['age']['column']
-        ethnicity_column = st.session_state.demographics['ethnicity']['column']
+        # Prepare columns and data
+        responses_column = st.session_state.get('responses_column')
+        if not responses_column:
+            st.error("Responses column not specified.")
+            st.stop()
+
+        demographics = st.session_state.get('demographics', {})
+        sex_column = demographics.get('sex', {}).get('column')
+        age_column = demographics.get('age', {}).get('column')
+        ethnicity_column = demographics.get('ethnicity', {}).get('column')
 
         columns = [responses_column]
         rename_mapping = {responses_column: 'responses'}
 
-        if 'age' in st.session_state.demographics and st.session_state.demographics['age']['include']:
+        # Add optional demographic columns
+        if demographics.get('age', {}).get('include', False):
             columns.append(age_column)
             rename_mapping[age_column] = 'age'
 
-        if 'sex' in st.session_state.demographics and st.session_state.demographics['sex']['include']:
+        if demographics.get('sex', {}).get('include', False):
             columns.append(sex_column)
             rename_mapping[sex_column] = 'sex'
 
-        if 'ethnicity' in st.session_state.demographics and st.session_state.demographics['ethnicity']['include']:
+        if demographics.get('ethnicity', {}).get('include', False):
             columns.append(ethnicity_column)
             rename_mapping[ethnicity_column] = 'ethnicity'
 
+        # Check for missing columns in DataFrame
+        columns = [col for col in columns if col]
+        missing_cols = [col for col in columns if col not in st.session_state.df.columns]
+
+        if missing_cols:
+            st.error(f"Missing columns in DataFrame: {', '.join(missing_cols)}")
+            st.stop()
+
+        # Filter and rename DataFrame
         df = st.session_state.df[columns].rename(columns=rename_mapping)
 
         # selected_cols = [st.session_state.responses_column]
