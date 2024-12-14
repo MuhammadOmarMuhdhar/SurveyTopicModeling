@@ -17,8 +17,11 @@ def documentation():
     # Submit Button
     if st.sidebar.button("Submit Feedback", key="submit_feedback_button"):
         if name and email and message:
-            st.sidebar.success("Thank you for your feedback!")
-            # Implement functionality to store or send feedback, e.g., saving to a database
+            # Save feedback to a text file
+            with open("feedback.txt", "a") as file:
+                file.write(f"Name: {name}\nEmail: {email}\nMessage: {message}\n{'-'*40}\n")
+
+            st.sidebar.success("Thank you for your feedback! Your message has been saved.")
         else:
             st.sidebar.error("Please fill in all fields before submitting.")
 

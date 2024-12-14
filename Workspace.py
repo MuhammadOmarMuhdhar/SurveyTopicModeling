@@ -15,38 +15,32 @@ def reset_session_state():
             'sex': {'include': False, 'column': None},
             'age': {'include': False, 'column': None},
             'ethnicity': {'include': False, 'column': None}
-        }
+        },
+        'topic': None
     })
 
-
-
-def validate_responses_column(df, column):
-    """Validates the selected column for survey responses."""
-    if column is None:
-        st.error("Please select a column for survey responses.")
-        return False
-    if column not in df.columns:
-        st.error(f"The selected column '{column}' does not exist in the DataFrame.")
-        return False
-    return True
-
-def toggle_demographic(demographic):
-    """Toggles the inclusion of a demographic variable."""
-    st.session_state.demographics[demographic]['include'] = not st.session_state.demographics[demographic]['include']
 
 def main():
     """Main function to run the Streamlit app."""
 
     # Feedback Form in Sidebar
+    st.sidebar.markdown("")
+    st.sidebar.markdown("")
     st.sidebar.markdown("### Share Your Feedback")
+
+    # Feedback Form Fields
     name = st.sidebar.text_input("Your Name", key="name_input")
     email = st.sidebar.text_input("Your Email", key="email_input")
     message = st.sidebar.text_area("Your Feedback or Suggestions", key="message_input")
 
+    # Submit Button
     if st.sidebar.button("Submit Feedback", key="submit_feedback_button"):
         if name and email and message:
-            st.sidebar.success("Thank you for your feedback!")
-            # Here, you can implement functionality to store feedback, e.g., saving to a database
+            # Save feedback to a text file
+            with open("feedback.txt", "a") as file:
+                file.write(f"Name: {name}\nEmail: {email}\nMessage: {message}\n{'-'*40}\n")
+
+            st.sidebar.success("Thank you for your feedback! Your message has been saved.")
         else:
             st.sidebar.error("Please fill in all fields before submitting.")
 
@@ -91,12 +85,12 @@ def main():
         
         survey_type = st.selectbox("What type of quiestionnaire is this:", ["Choose"] + type_of_questionnaire)
 
-        survey_topic = st.text_input("In 1-5 words, describe the topic of the questionnaire:")
+        survey_topic = st.text_input("In 1-5 words, describe the topic of the questionnaire:", "e.g. student study habits" )
 
         if len(survey_topic.split()) > 5:
             st.error("Please describe the topic in 1-5 words.")
             return False
-        elif survey_type != "Choose" and survey_topic != "":
+        elif survey_type != "Choose" and survey_topic != "e.g. student study habits" and survey_topic != "":
             topic = f"This questionnaire is a {survey_type.lower()} focused on '{survey_topic.strip()}'."
             st.session_state.topic = topic
 
@@ -124,37 +118,84 @@ def main():
                 st.success("Data uploaded successfully!")
 
                 # Select Response Column
-                st.subheader("Select the Column Containing Survey Responses")
                 responses_column = st.selectbox(
                     "Select the column containing survey responses",
                     [''] + st.session_state.columns
                 )
 
-                if responses_column:
-                    if validate_responses_column(st.session_state.df, responses_column):
-                        st.session_state.responses_column = responses_column
-                        st.success(f"Responses column selected: **{responses_column}**")
-                    else:
-                        st.error("The selected column is not valid. Please select a different column.")
+                if responses_column is None:
+                    st.error("Please select a column for survey responses.")
+                    return False
+                if responses_column not in df.columns:
+                    st.error(f"The selected column '{responses_column}' does not exist in the DataFrame.")
+                    return False
+                if df[responses_column].dtype != 'object':
+                    st.error(f"The column '{responses_column}' does not contain text data.")
+                    return False
+                if responses_column is not None: 
+                    st.session_state.responses_column = responses_column
+                    st.success(f"Responses column selected: **{responses_column}**")
 
                 # Demographics section
-                st.subheader("Select Demographic Columns")
-                available_columns = [col for col in st.session_state.columns if col != st.session_state.responses_column]
 
-                st.write("Select demographic categories to include in the analysis:")
-                st.checkbox("Sex", key="include_sex", on_change=lambda: toggle_demographic('sex'))
+                def toggle_demographic(demographic):
+                    """Toggles the inclusion of a demographic variable."""
+                    st.session_state.demographics[demographic]['include'] = not st.session_state.demographics[demographic]['include']
+
+                st.write("Select demographic categories to include in the analysis (optional):")
+
+                # Checkbox for "Sex"
+                sex_column = None
+                st.checkbox(
+                    "Sex",
+                    key="include_sex",
+                    on_change=lambda: st.session_state.demographics.update({
+                        'sex': {'include': not st.session_state.demographics['sex']['include']}
+                    })
+                )
                 if st.session_state.demographics['sex']['include']:
-                    sex_column = st.selectbox("Select Sex Column", available_columns, key="sex_column")
+                    sex_column = st.selectbox("Select Sex Column", st.session_state.columns, key="sex_column")
+                    if sex_column is None:
+                        st.error("Please select a column for sex, or uncheck the checkbox.")
+                        st.stop()  # Stops the app execution
                     st.session_state.demographics['sex']['column'] = sex_column
 
-                st.checkbox("Age", key="include_age", on_change=lambda: toggle_demographic('age'))
+                # Checkbox for "Age"
+                age_column = None
+                st.checkbox(
+                    "Age",
+                    key="include_age",
+                    on_change=lambda: st.session_state.demographics.update({
+                        'age': {'include': not st.session_state.demographics['age']['include']}
+                    })
+                )
                 if st.session_state.demographics['age']['include']:
-                    age_column = st.selectbox("Select Age Column", available_columns, key="age_column")
+                    age_column = st.selectbox("Select Age Column", st.session_state.columns, key="age_column")
+                    if age_column is None:
+                        st.error("Please select a column for age, or uncheck the checkbox.")
+                        st.stop()
+                    if df[age_column].dtype not in ['int64', 'float64']:  # Correct condition
+                        st.error(f"The column '{age_column}' does not contain numerical data.")
+                        st.stop()
                     st.session_state.demographics['age']['column'] = age_column
 
-                st.checkbox("Ethnicity", key="include_ethnicity", on_change=lambda: toggle_demographic('ethnicity'))
+                # Checkbox for "Ethnicity"
+                ethnicity_column = None
+                st.checkbox(
+                    "Ethnicity",
+                    key="include_ethnicity",
+                    on_change=lambda: st.session_state.demographics.update({
+                        'ethnicity': {'include': not st.session_state.demographics['ethnicity']['include']}
+                    })
+                )
                 if st.session_state.demographics['ethnicity']['include']:
-                    ethnicity_column = st.selectbox("Select Ethnicity Column", available_columns, key="ethnicity_column")
+                    ethnicity_column = st.selectbox("Select Ethnicity Column", st.session_state.columns, key="ethnicity_column")
+                    if ethnicity_column is None:
+                        st.error("Please select a column for ethnicity, or uncheck the checkbox.")
+                        st.stop()
+                    if df[ethnicity_column].dtype != 'object':  # Text data is typically 'object'
+                        st.error(f"The column '{ethnicity_column}' does not contain text data.")
+                        st.stop()
                     st.session_state.demographics['ethnicity']['column'] = ethnicity_column
 
                 # Navigate to Review Data
@@ -209,20 +250,13 @@ def main():
         # Filter and rename DataFrame
         df = st.session_state.df[columns].rename(columns=rename_mapping)
 
-        # selected_cols = [st.session_state.responses_column]
-        # for demo, data in st.session_state.demographics.items():
-        #     if data['include']:
-        #         selected_cols.append(data['column'])
-
-        # subset_df = st.session_state.df[selected_cols].dropna()
-        # st.write("Selected Data:")
         st.dataframe(df)
 
         if st.button("Back"):
             st.session_state.stage = 'upload'
             st.rerun()
 
-        if st.button("Analyze Data"):
+        if st.button("Analyze"):
             st.session_state.stage = 'analyze_data'
             st.rerun()
 
@@ -250,26 +284,28 @@ def main():
 
     # **Analyze Data Stage**
     elif st.session_state.stage == 'analyze_data':
-        st.subheader("Analyze Data")
+        st.subheader("Analyzing Data")
 
         # Prepare columns and data
         responses_column = st.session_state.responses_column
-        sex_column = st.session_state.demographics['sex']['column']
-        age_column = st.session_state.demographics['age']['column']
-        ethnicity_column = st.session_state.demographics['ethnicity']['column']
+        demographics = st.session_state.get('demographics', {})
+        sex_column = demographics.get('sex', {}).get('column')
+        age_column = demographics.get('age', {}).get('column')
+        ethnicity_column = demographics.get('ethnicity', {}).get('column')
 
         columns = [responses_column]
         rename_mapping = {responses_column: 'responses'}
 
-        if 'age' in st.session_state.demographics and st.session_state.demographics['age']['include']:
+        # Add optional demographic columns
+        if demographics.get('age', {}).get('include', False):
             columns.append(age_column)
             rename_mapping[age_column] = 'age'
 
-        if 'sex' in st.session_state.demographics and st.session_state.demographics['sex']['include']:
+        if demographics.get('sex', {}).get('include', False):
             columns.append(sex_column)
             rename_mapping[sex_column] = 'sex'
 
-        if 'ethnicity' in st.session_state.demographics and st.session_state.demographics['ethnicity']['include']:
+        if demographics.get('ethnicity', {}).get('include', False):
             columns.append(ethnicity_column)
             rename_mapping[ethnicity_column] = 'ethnicity'
 
