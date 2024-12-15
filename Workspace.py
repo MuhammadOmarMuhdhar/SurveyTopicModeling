@@ -102,6 +102,7 @@ def main():
         # File Upload Section
         st.subheader("Upload Survey Data")
         uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+        st.info("Please upload a CSV file with 500 rows or fewer. This limitation helps manage computational resources.")
 
         if 'demographics' not in st.session_state:
             st.session_state.demographics = {
@@ -113,6 +114,11 @@ def main():
         if uploaded_file is not None:
             try:
                 df = pd.read_csv(uploaded_file)
+                if len(df) > 500:
+                    st.error(
+                        "This CSV has more than 500 rows of data"
+                    )
+                    return False
                 st.session_state.df = df
                 st.session_state.columns = df.columns.tolist()
                 st.success("Data uploaded successfully!")
