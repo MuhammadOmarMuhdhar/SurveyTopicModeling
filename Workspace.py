@@ -97,12 +97,13 @@ def main():
         if st.session_state.topic:
             st.success(f"Topic saved: **{st.session_state.topic}**")
         else:
-            st.warning("Please select a topic before proceeding.")
+            st.info("Please select a topic before proceeding.")
 
         # File Upload Section
         st.subheader("Upload Survey Data")
         uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-        st.info("Please upload a CSV file with 500 rows or fewer. This limitation helps manage computational resources.")
+        if uploaded_file is None:
+            st.info("Please upload a CSV file with 500 rows or fewer. This limitation helps manage computational resources.")
 
         if 'demographics' not in st.session_state:
             st.session_state.demographics = {
