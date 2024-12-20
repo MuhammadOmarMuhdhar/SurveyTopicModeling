@@ -59,8 +59,11 @@ def documentation():
     st.subheader("Core Technologies")
     with st.expander("Sentence-Transformers for Embedding Generation"):
         st.markdown("""
-            This tool uses `sentence-transformers`, a pre-trained model from Hugging Face, to generate embeddings that capture the semantic meaning of textual responses.
-            These embeddings provide a representation of the nuances within responses, ensuring that similar ideas are grouped together effectively.
+                    Embeddings are a way to represent textual data numerically, enabling machines to understand and process semantic meaning and similarity. They convert words, sentences, and paragraphs into high-dimensional vectors, which capture their contextual relationships. For example, the embeddings for "king" and "queen" reflect their semantic similarity in the context of ruling, while distinguishing their differences in terms of gender. 
+                    
+                    This project uses [Sentence-Transformers](https://huggingface.co/sentence-transformers), a pre-trained model from Hugging Face, to generate these embeddings. A key feature of this model is its ability to understand context, enabling it to differentiate between homonyms or polysemous words. For instance, "Apple" as a fruit and "Apple" as a company are recognized as having distinct meanings, depending on their usage in a sentence.
+
+                    Additionally, Sentence-Transformers can generate embeddings for entire sentences or paragraphs rather than just individual words. For instance, it can determine the similarity between two sentences like “The car is fast” and “The vehicle is speedy” while accounting for their contextual alignment. This capability makes it particularly useful for creating embeddings to be used for clustering textual data.
         """)
 
     with st.expander("HDBSCAN for Clustering"):
