@@ -57,7 +57,7 @@ def summarize_text(topic, text, cached_topics):
         - Explains the central themes, patterns, or ideas expressed in the current cluster.
         - Identifies commonalities in opinions, emotions, or feedback within the responses.
         - Highlights any unique or surprising insights that make this cluster distinct.
-        - Provides concise, actionable insights.
+
 
         The dataset's broader topic is: {topic}
 
