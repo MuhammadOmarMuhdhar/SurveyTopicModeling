@@ -7,7 +7,7 @@ from visuals import visualize
 def reset_session_state():
     """Resets the session state variables."""
     st.session_state.update({
-        'stage': 'upload',
+        'stage': 'home',
         'df': None,
         'columns': [],
         'responses_column': None,
@@ -48,20 +48,91 @@ def main():
     if 'stage' not in st.session_state:
         reset_session_state()
 
+    if st.session_state.stage == 'home':
+
+        if "selected_button" not in st.session_state:
+            st.session_state.selected_button = None
+
+
+        st.subheader('Topic Modeler')
+
+        st.markdown('''
+                    
+        This prototype tool leverages unsupervised machine learning methods and language models to process and extract quantitative insights 
+        from open-ended qualitative human data such as survey responses, legal documents, and social media posts. The output is an interactive dashboard 
+        that allows you to explore the results. 
+        - Understand the tool’s purpose in the **About** tab
+        - Learn more about how to use the tool and how it works in the **Documentation** tab.
+        - Explore practical examples of the tool in use in the **Case Studies** tab.
+        ''')
+
+        st.markdown('''
+        ### Get Started
+
+        This prototype is optimized for smaller datasets and won't match the speed of production-grade tools. Its primary purpose is to support exploratory 
+        analysis while gathering user feedback to guide future improvements and the creation of a final version.
+
+        We greatly value your input—please share any thoughts, suggestions, or ideas for improvement to help us refine and enhance this tool.
+                    
+         To get started, select the type of data you wish to analyze below.
+        ''')
+
+        st.session_state.selected_button = st.radio(
+            "Choose the type of data to analyze:",
+            ('Open-ended Surveys', 'Documents')
+        )
+
+       
+        # st.session_state.selected_button = option
+
+        # # Display which option was selected
+        # if st.session_state.selected_button:
+        #     st.success(f"Selected: {st.session_state.selected_button}")
+        # else:
+        #     st.info("No option selected yet.")
+
+        
+
+        # # Display the user's selection
+        # st.write(f"You selected: {option}")
+
+        # Continue Button
+        if st.button('Continue'):
+            if st.session_state.selected_button == 'Open-ended Surveys':
+                st.session_state.stage = 'survey'
+                st.rerun()
+            elif st.session_state.selected_button == 'Documents':
+                st.session_state.stage = 'Documents'
+                st.rerun()
+            else:
+                st.warning("Please select an option before continuing.")
+        
     # **Upload Stage**
-    if st.session_state.stage == 'upload':
+    elif st.session_state.stage == 'survey':
 
         st.subheader("Survey Topic Modelor")
         
-        st.markdown(
-        "This prototype tool leverages large language models to process and translate open-ended qualitative data—such as survey responses, product reviews, and user feedback into an insightful visualization, providing qualitative insights on patterns and trends in the responses at the topic level."
-                    )
+        st.markdown('''
+            The Survey Topic Modeler is designed to analyze open-ended survey responses. It clusters responses into meaningful topics, 
+            performs sentiment analysis, and generates concise summaries to uncover actionable insights. 
+
+            Examples of what you can use it for:
+            - Analyzing course evaluations to identify common themes and areas for improvement.
+            - Summarizing customer feedback to inform product development or service enhancements.
+            - Gaining insights from employee surveys to shape workplace policies and culture.
+
+            For more information on how it works and how to use it, please see the Documentation tab.
+            ''')
         
-        st.markdown(
-        "We value your feedback! Please share your thoughts, suggestions, or any ideas for improvement to help us refine this tool and make it even more useful."
-            )
+        # st.markdown(
+        # "We value your feedback! Please share your thoughts, suggestions, or any ideas for improvement to help us refine this tool and make it even more useful."
+        #     )
         
-        st.subheader("Questionnaire Topic")
+        st.subheader("Survey Topic")
+
+        st.markdown('''
+            Select the type of survey and briefly describe its topic to guide the summarization process.
+            ''')
 
         # Ensure topic is initialized
         if 'topic' not in st.session_state:
@@ -105,13 +176,12 @@ def main():
         if uploaded_file is None:
             st.info("Please upload a CSV file with 500 rows or fewer. This limitation helps manage computational resources.")
 
-        if 'demographics' not in st.session_state:
-            st.session_state.demographics = {
-                'sex': {'include': False, 'column': None},
-                'age': {'include': False, 'column': None},
-                'ethnicity': {'include': False, 'column': None}
+        if 'survey_flow' not in st.session_state:
+            st.session_state.survey_flow = {
+                'broad': {'include': False, 'column': None},
+                'sub': {'include': False, 'column': None},
             }
-
+        
         if uploaded_file is not None:
             try:
                 df = pd.read_csv(uploaded_file)
@@ -130,10 +200,13 @@ def main():
                     [''] + st.session_state.columns
                 )
 
+                if responses_column == '':
+                    st.info("Select the column containing open-ended survey responses")
+                    return False
                 if responses_column is None:
                     st.error("Please select a column for survey responses.")
                     return False
-                if responses_column not in df.columns:
+                if responses_column not in df.columns :
                     st.error(f"The selected column '{responses_column}' does not exist in the DataFrame.")
                     return False
                 if df[responses_column].dtype != 'object':
@@ -143,131 +216,133 @@ def main():
                     st.session_state.responses_column = responses_column
                     st.success(f"Responses column selected: **{responses_column}**")
 
-                # Demographics section
+                st.subheader("Organize Survey Flow")
+                st.write("""
+                    This step is optional and allows you to tailor your analysis based on specific segments of your data.
+                    """)
 
-                def toggle_demographic(demographic):
-                    """Toggles the inclusion of a demographic variable."""
-                    st.session_state.demographics[demographic]['include'] = not st.session_state.demographics[demographic]['include']
+                st.markdown(''' 
+                    ##### Broad Grouping 
+                    Select a primary grouping criterion (e.g. treatment variable if you're doing an experiment).
+                        ''')
+                broad_grouping = st.selectbox("Select main grouping criterion", ['']+  st.session_state.columns)
+                if broad_grouping:
+                    unique_values = st.session_state.df[broad_grouping].nunique()
+                    if unique_values > 5:
+                        st.error(f"The selected column '{broad_grouping}' has more than 5 unique values, which may be too computationally expensive for this prototype.")
+                        return False  # Prevent proceeding if too many unique values
+                    else:
+                        # Proceed with the survey flow
+                        st.session_state.survey_flow['broad'] = {'include': True, 'column': broad_grouping}
+                        st.success(f"Column '{broad_grouping}' added as the broad grouping.")
 
-                st.write("Select demographic categories to include in the analysis (optional):")
-
-                # Checkbox for "Sex"
-                sex_column = None
-                st.checkbox(
-                    "Sex",
-                    key="include_sex",
-                    on_change=lambda: st.session_state.demographics.update({
-                        'sex': {'include': not st.session_state.demographics['sex']['include']}
-                    })
-                )
-                if st.session_state.demographics['sex']['include']:
-                    sex_column = st.selectbox("Select Sex Column", st.session_state.columns, key="sex_column")
-                    if sex_column is None:
-                        st.error("Please select a column for sex, or uncheck the checkbox.")
-                        st.stop()  # Stops the app execution
-                    st.session_state.demographics['sex']['column'] = sex_column
-
-                # Checkbox for "Age"
-                age_column = None
-                st.checkbox(
-                    "Age",
-                    key="include_age",
-                    on_change=lambda: st.session_state.demographics.update({
-                        'age': {'include': not st.session_state.demographics['age']['include']}
-                    })
-                )
-                if st.session_state.demographics['age']['include']:
-                    age_column = st.selectbox("Select Age Column", st.session_state.columns, key="age_column")
-                    if age_column is None:
-                        st.error("Please select a column for age, or uncheck the checkbox.")
-                        st.stop()
-                    if df[age_column].dtype not in ['int64', 'float64']:  # Correct condition
-                        st.error(f"The column '{age_column}' does not contain numerical data.")
-                        st.stop()
-                    st.session_state.demographics['age']['column'] = age_column
-
-                # Checkbox for "Ethnicity"
-                ethnicity_column = None
-                st.checkbox(
-                    "Ethnicity",
-                    key="include_ethnicity",
-                    on_change=lambda: st.session_state.demographics.update({
-                        'ethnicity': {'include': not st.session_state.demographics['ethnicity']['include']}
-                    })
-                )
-                if st.session_state.demographics['ethnicity']['include']:
-                    ethnicity_column = st.selectbox("Select Ethnicity Column", st.session_state.columns, key="ethnicity_column")
-                    if ethnicity_column is None:
-                        st.error("Please select a column for ethnicity, or uncheck the checkbox.")
-                        st.stop()
-                    if df[ethnicity_column].dtype != 'object':  # Text data is typically 'object'
-                        st.error(f"The column '{ethnicity_column}' does not contain text data.")
-                        st.stop()
-                    st.session_state.demographics['ethnicity']['column'] = ethnicity_column
-
-                # Navigate to Review Data
-                if st.session_state.topic and 'responses_column' in st.session_state and st.session_state.responses_column:
-                    if st.button("Review Data"):
-                        st.session_state.stage = 'review_data'
-                        st.rerun()
-                else:
-                    st.warning("Ensure topic, data, and responses column are selected before reviewing data.")
+                if broad_grouping: 
+                    st.markdown('''
+                        ##### Subgrouping
+                        After selecting a main grouping, you can refine your analysis by adding a secondary criterion (e.g. differences in 
+                        "Age" or "Gender" within "Treatment vs. Control").
+                        ''')
+                    subgroup_by1 = st.selectbox("Select first subgroup criterion (optional)", [''] +  st.session_state.columns)
+                    if subgroup_by1 is broad_grouping:
+                        st.error('this is the same as your broader grouping')
+                        return False
+                    elif subgroup_by1:
+                        st.session_state.survey_flow['sub'] = {'include': True, 'column': subgroup_by1}
+                
             except Exception as e:
                 st.error(f"Error processing file: {e}")
+
+        # Adjust column widths to reduce the gap
+        col1, col2 = st.columns([.13, 1.15])  # You can tweak these values for more precise spacing
+
+        with col1:
+            if st.button("Back"):
+                st.session_state.stage = 'home'
+                st.rerun()
+
+        with col2:
+            if st.button("Continue"):
+                if st.session_state.topic and st.session_state.responses_column:
+                    st.session_state.stage = 'review_data'
+                    st.rerun()
+                else:
+                    st.warning("Ensure topic, data, and responses column are selected before reviewing data.")
 
     # **Review Data Stage**
     elif st.session_state.stage == 'review_data':
         st.subheader("Review Data")
 
         # Prepare columns and data
-        responses_column = st.session_state.get('responses_column')
+        columns = []
+        responses_column = st.session_state.responses_column
         if not responses_column:
             st.error("Responses column not specified.")
             st.stop()
+        else: 
+            columns.append(responses_column)
 
-        demographics = st.session_state.get('demographics', {})
-        sex_column = demographics.get('sex', {}).get('column')
-        age_column = demographics.get('age', {}).get('column')
-        ethnicity_column = demographics.get('ethnicity', {}).get('column')
+        broad_grouping = st.session_state.survey_flow['broad']
+        if broad_grouping['include'] and broad_grouping['column']:
+            columns.append(broad_grouping['column'])
 
-        columns = [responses_column]
-        rename_mapping = {responses_column: 'responses'}
+        sub = st.session_state.survey_flow['sub']
+        if sub['include'] and sub['column']:
+            columns.append(sub['column'])
 
-        # Add optional demographic columns
-        if demographics.get('age', {}).get('include', False):
-            columns.append(age_column)
-            rename_mapping[age_column] = 'age'
+        st.markdown( '''
+                ##### Overall Dataset
+        ''')
 
-        if demographics.get('sex', {}).get('include', False):
-            columns.append(sex_column)
-            rename_mapping[sex_column] = 'sex'
-
-        if demographics.get('ethnicity', {}).get('include', False):
-            columns.append(ethnicity_column)
-            rename_mapping[ethnicity_column] = 'ethnicity'
-
-        # Check for missing columns in DataFrame
-        columns = [col for col in columns if col]
-        missing_cols = [col for col in columns if col not in st.session_state.df.columns]
-
-        if missing_cols:
-            st.error(f"Missing columns in DataFrame: {', '.join(missing_cols)}")
-            st.stop()
-
-        # Filter and rename DataFrame
-        df = st.session_state.df[columns].rename(columns=rename_mapping)
+        df = st.session_state.df[columns]
 
         st.dataframe(df)
 
-        if st.button("Back"):
+        st.markdown( '''
+                ##### Grouped data
+        ''')
+
+        if 'groupings' not in st.session_state:
+            st.session_state.groupings = {}
+
+        unique_broad_grouping = df[broad_grouping['column']].unique()
+        # Iterate over the unique broad groupings
+        for group in unique_broad_grouping:
+            # Create a subset of the DataFrame for the current broad grouping
+            grouping = df[df[broad_grouping['column']] == group]
+            
+            # Save this subset to session state
+            st.session_state.groupings[group] = {'broad_grouping': grouping}
+
+            # Extract the unique values of the subgrouping column
+            unique_sub_grouping = df[sub['column']].unique()
+            
+            # Iterate over the unique subgrouping values
+            for subgroup in unique_sub_grouping:
+                # Create a subset for the current subgroup
+                subgroups = grouping[grouping[sub['column']] == subgroup]
+                
+                # Save the subgroup to session state
+                if group not in st.session_state.groupings:
+                    st.session_state.groupings[group] = {}
+
+                st.session_state.groupings[group][subgroup] = subgroups
+                
+                # Optionally, display the subgroups
+                st.write(f"Group: {group}, Subgroup: {subgroup}")
+                st.write(subgroups)
+
+
+        col1, col2 = st.columns([.13, 1.15])
+
+        if col1.button("Back"):
             st.session_state.stage = 'upload'
             st.rerun()
 
-        if st.button("Analyze"):
+        if col2.button("Continue"):
             st.session_state.stage = 'analyze_data'
             st.rerun()
 
-        
+
         # if "email_submitted" not in st.session_state:
         #     st.session_state.email_submitted = False
 
